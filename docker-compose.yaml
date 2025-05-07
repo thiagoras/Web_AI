@@ -1,0 +1,39 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      HTTP_PROXY: ${http_proxy}
+      HTTPS_PROXY: ${https_proxy}
+      NO_PROXY: localhost,127.0.0.0/8,::1,10.*,*.mb
+    # Opcional: Se tiver GPU compatível com Ollama (Nvidia ou CUDA), descomente a linha abaixo
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    restart: unless-stopped
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: openwebui
+    ports:
+      - "3000:8080"
+    volumes:
+      - openwebui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  openwebui_data:
+
